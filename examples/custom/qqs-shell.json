@@ -1,0 +1,6 @@
+{
+  "command": ["python3", "demo_shell.py"],
+  "working_directory": ".",
+  "ready_text": "DEMO_READY",
+  "require_window": true
+}

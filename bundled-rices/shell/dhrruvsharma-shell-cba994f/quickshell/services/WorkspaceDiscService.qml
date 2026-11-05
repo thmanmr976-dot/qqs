@@ -1,0 +1,141 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// Derived from zesis-shell's widgets/workspaceindicator/disc/WorkspaceDiscService.qml.
+// Copyright (C) 2026 Squirrel Modeller (zesis-shell)
+//   https://github.com/zesis-shell/zesis
+// Modifications copyright (C) 2026 dhrruvsharma.
+//
+// Licensed under the GNU General Public License, version 3 or (at your
+// option) any later version. See LICENSE in the repository root.
+
+pragma Singleton
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+// Settings for the workspace disc, stored in its own dedicated JSON file
+// (not the shared settings.json) so the feature owns its data. Edit
+// ~/.config/quickshell/config/workspacedisc.json and it live-reloads; the
+// corner is also set by dragging the disc (setCorner()), and the rest in the
+// customizer's book (set()).
+//
+// `visibility` "auto" tucks the disc away into its corner once you've
+// stayed on one workspace for `hideAfter` seconds; it comes back while you
+// switch workspaces (`revealOnSwitch`, opened out with `openOnSwitch`) and
+// when the pointer comes into the corner (`revealOnHover`).
+Singleton {
+    id: root
+
+    readonly property string _configPath: Quickshell.env("HOME") + "/.config/quickshell/config/workspacedisc.json"
+
+    // Geometry / behaviour
+    readonly property int workSpaceAmount:    settingsData.workSpaceAmount     // fixed chamber count when not expressive
+    readonly property int minWorkSpaceAmount: settingsData.minWorkSpaceAmount  // floor when expressive
+    readonly property int discRadius:         settingsData.discRadius
+    readonly property int toothWidth:         settingsData.toothWidth          // gear tooth width % (0..100)
+    readonly property int valleyDepth:        settingsData.valleyDepth         // gear valley depth % (0..100)
+    readonly property int chamberRadius:      settingsData.chamberRadius       // orbit radius of chambers
+    readonly property int chamberSize:        settingsData.chamberSize
+    readonly property int peekOffset:         settingsData.peekOffset          // px the disc peeks out when collapsed
+    readonly property bool expressive:        settingsData.expressive          // size the ring to live workspaces
+    readonly property string skin:            settingsData.skin                // "default" | "waterwheel" | "gris"
+    readonly property string corner:          root.corners.includes(settingsData.corner) ? settingsData.corner : "bottomLeft"
+    readonly property string visibility:      settingsData.visibility === "auto" ? "auto" : "always"
+    readonly property int hideAfter:          Math.max(1, Math.min(120, settingsData.hideAfter))
+    readonly property bool revealOnSwitch:    settingsData.revealOnSwitch
+    readonly property bool revealOnHover:     settingsData.revealOnHover
+    readonly property bool openOnSwitch:      settingsData.openOnSwitch
+    readonly property var skins: [
+        { id: "default", name: "Cog" },
+        { id: "waterwheel", name: "Waterwheel" },
+        { id: "gris", name: "Gris" }
+    ]
+
+    readonly property var corners: ["topLeft", "topRight", "bottomLeft", "bottomRight"]
+
+    // The disc is being dragged to another corner: the bar and the edge
+    // strips, which lie above its surface, stop taking the pointer meanwhile
+    // so they can't catch it on the way.
+    property bool moving: false
+
+    function setCorner(c) {
+        if (!root.corners.includes(c) || c === settingsData.corner)
+            return
+        settingsData.corner = c
+        writeTimer.restart()
+    }
+
+    // One of the settings above, by its name in the file.
+    function set(key, value) {
+        const ints = { workSpaceAmount: [3, 10], minWorkSpaceAmount: [1, 10], discRadius: [36, 96], chamberRadius: [16, 70],
+            chamberSize: [14, 40], peekOffset: [6, 48], hideAfter: [1, 120], toothWidth: [0, 100], valleyDepth: [0, 100] }
+        let v = value
+        if (key in ints)
+            v = Math.round(Math.max(ints[key][0], Math.min(ints[key][1], Number(value))))
+        else if (key === "skin" && !root.skins.some(k => k.id === value))
+            return
+        else if (key === "visibility" && value !== "auto" && value !== "always")
+            return
+        else if (key === "corner")
+            return root.setCorner(value)
+        else if (["expressive", "revealOnSwitch", "revealOnHover", "openOnSwitch"].includes(key))
+            v = !!value
+        else if (key !== "skin" && key !== "visibility")
+            return
+        if (settingsData[key] === v)
+            return
+        settingsData[key] = v
+        writeTimer.restart()
+    }
+
+    // The disc's size: its radius, with its chambers' orbit and size in
+    // the same proportion as the defaults (55, 30, 26).
+    function setSize(r) {
+        const v = Math.round(Math.max(36, Math.min(96, r)))
+        root.set("discRadius", v)
+        root.set("chamberRadius", Math.round(v * 30 / 55))
+        root.set("chamberSize", Math.round(v * 26 / 55))
+    }
+
+    // Its own writes come back as file changes; a read straight after one
+    // would undo a value dragged on meanwhile.
+    property double _quietUntil: 0
+
+    Timer {
+        id: writeTimer
+        interval: 150
+        onTriggered: {
+            root._quietUntil = Date.now() + 600
+            settingsFile.writeAdapter()
+        }
+    }
+
+    FileView {
+        id: settingsFile
+        path: root._configPath
+        watchChanges: true
+        onFileChanged: {
+            if (Date.now() > root._quietUntil)
+                reload()
+        }
+        adapter: JsonAdapter {
+            id: settingsData
+            property int workSpaceAmount: 6
+            property int minWorkSpaceAmount: 1
+            property int discRadius: 55
+            property int toothWidth: 40
+            property int valleyDepth: 28
+            property int chamberRadius: 30
+            property int chamberSize: 26
+            property int peekOffset: 16
+            property bool expressive: true
+            property string skin: "default"
+            property string corner: "bottomLeft"
+            property string visibility: "always"
+            property int hideAfter: 4
+            property bool revealOnSwitch: true
+            property bool revealOnHover: true
+            property bool openOnSwitch: false
+        }
+    }
+}

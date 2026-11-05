@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "rices": [
+    {
+      "id": "shell",
+      "name": "shell",
+      "directory": "shell",
+      "entry": "dhrruvsharma-shell-cba994f/quickshell/shell.qml",
+      "source": "https://github.com/dhrruvsharma/shell",
+      "source_kind": "github"
+    },
+    {
+      "id": "persona-quickshell",
+      "name": "persona quickshell",
+      "directory": "persona-quickshell",
+      "entry": "Yujonpradhananga-Persona-Quickshell-6bb02aa/shell.qml",
+      "source": "https://github.com/Yujonpradhananga/Persona-Quickshell-",
+      "source_kind": "github"
+    },
+    {
+      "id": "i3-dots-rofi",
+      "name": "i3-dots",
+      "directory": "i3-dots-rofi",
+      "entry": "sansroot-i3-dots-df94485/Rofi/squared-nord.rasi",
+      "source": "https://github.com/sansroot/i3-dots/tree/joi-dots-UNMAINTAINED",
+      "source_kind": "github"
+    }
+  ]
+}

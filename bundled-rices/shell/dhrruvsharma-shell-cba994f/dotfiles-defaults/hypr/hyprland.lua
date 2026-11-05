@@ -1,0 +1,274 @@
+local colors = require("colors")
+
+---------------------
+---- MY PROGRAMS ----
+---------------------
+
+local terminal    = "kitty"
+local fileManager = "dolphin"
+local mainMod     = "SUPER"
+
+-------------------
+---- AUTOSTART ----
+-------------------
+
+hl.on("hyprland.start", function()
+    hl.exec_cmd("nm-applet")
+    hl.exec_cmd("kdeconnectd")
+    hl.exec_cmd("kdeconnect-indicator")
+    hl.exec_cmd("wl-paste --watch cliphist store")
+    -- THP off for Quickshell: see the wrapper's header
+    hl.exec_cmd(os.getenv("HOME") .. "/.config/quickshell/scripts/qs-nothp qs")
+end)
+
+-------------------------------
+---- ENVIRONMENT VARIABLES ----
+-------------------------------
+
+hl.env("XCURSOR_SIZE", "24")
+hl.env("HYPRCURSOR_SIZE", "24")
+hl.env("XCURSOR_THEME", "Bibata-Modern-Ice-Right")
+hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+hl.env("QT_STYLE_OVERRIDE", "Kvantum")
+hl.env("QT_QPA_PLATFORM", "wayland")
+hl.env("QT_WAYLAND_DISABLE_WINDOWDECORATION", "1")
+hl.env("QT_AUTO_SCREEN_SCALE_FACTOR", "0")
+hl.env("QT_SCALE_FACTOR", "1")
+hl.env("MOZ_ENABLE_WAYLAND", "1")
+hl.env("GDK_SCALE", "1")
+hl.env("GDK_DPI_SCALE", "1")
+hl.env("LIBVA_DRIVER_NAME", "nvidia")
+hl.env("__GL_VRR_ALLOWED", "0")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+hl.env("GBM_BACKEND", "nvidia-drm")
+hl.env("NVD_BACKEND", "direct")
+
+-----------------------
+---- LOOK AND FEEL ----
+-----------------------
+
+hl.config({
+    general = {
+        gaps_in     = 5,
+        gaps_out    = 20,
+        border_size = 2,
+
+        col = {
+            active_border   = { colors = { colors.primary, colors.tertiary },          angle = 45 },
+            inactive_border = { colors = { colors.surface_container, colors.outline },  angle = 45 },
+        },
+
+        resize_on_border = true,
+        layout           = "scrolling",
+    },
+
+    scrolling = {
+        fullscreen_on_one_column = true,
+        column_width             = 0.90,
+        follow_focus             = true,
+        focus_fit_method         = 1,
+        explicit_column_widths   = ".75, .75, .75, .75",
+    },
+
+    decoration = {
+        rounding       = 35,
+        rounding_power = 2,
+
+        active_opacity     = 0.65,
+        inactive_opacity   = 0.55,
+        fullscreen_opacity = 1.0,
+
+        shadow = {
+            enabled      = true,
+            range        = 18,
+            render_power = 5,
+            color        = colors.shadow,
+        },
+    },
+
+    master = {
+        new_status = "master",
+    },
+
+    misc = {
+        force_default_wallpaper = -1,
+        disable_hyprland_logo   = true,
+    },
+
+    input = {
+        kb_layout    = "us",
+        kb_variant   = "",
+        kb_model     = "",
+        kb_options   = "",
+        kb_rules     = "",
+        left_handed  = true,
+        follow_mouse = 1,
+        sensitivity  = 0, -- -1.0 - 1.0, 0 means no modification.
+
+        touchpad = {
+            natural_scroll = false,
+        },
+    },
+
+    gestures = {
+        workspace_swipe_invert   = false,
+        workspace_swipe_distance = 700,
+    },
+
+    group = {
+        auto_group           = true,
+        insert_after_current = true,
+
+        groupbar = {
+            enabled   = true,
+            gradients = true,
+        },
+    },
+})
+
+----------------
+---- DEVICES ----
+----------------
+
+hl.gesture({
+    fingers   = 3,
+    direction = "horizontal",
+    action    = "workspace",
+})
+
+hl.device({
+    name        = "epic-mouse-v1",
+    sensitivity = -0.5,
+})
+
+---------------------
+---- KEYBINDINGS ----
+---------------------
+
+-- Quickshell panels and toggles live in quickshell.lua
+require("quickshell")
+
+hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(terminal))
+hl.bind(mainMod .. " + C", hl.dsp.window.close())
+hl.bind(mainMod .. " + M", hl.dsp.exit())
+hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
+hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("~/.config/scripts/change-layout.sh"))
+hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.local/bin/goland"))
+-- App launchers (ALT)
+hl.bind("ALT + D", hl.dsp.exec_cmd("discord"))
+hl.bind("ALT + V", hl.dsp.exec_cmd("prime-run vesktop"))
+hl.bind("ALT + M", hl.dsp.exec_cmd("spotify-launcher"))
+hl.bind("ALT + G", hl.dsp.exec_cmd("google-chrome-stable"))
+hl.bind("ALT + T", hl.dsp.exec_cmd("postman"))
+hl.bind("ALT + S", hl.dsp.exec_cmd("slack"))
+hl.bind("ALT + W", hl.dsp.exec_cmd("~/.local/bin/webstorm"))
+hl.bind("ALT + F", hl.dsp.exec_cmd("firefox"))
+hl.bind("ALT + E", hl.dsp.exec_cmd("ez-fm"))
+hl.bind("ALT + C", hl.dsp.exec_cmd("code"))
+
+-- Screenshots (Print)
+hl.bind("Print",         hl.dsp.exec_cmd("~/.config/quickshell/scripts/screenshot save output"))
+hl.bind("SHIFT + Print", hl.dsp.exec_cmd("~/.config/quickshell/scripts/screenshot save area"))
+hl.bind("CTRL + Print",  hl.dsp.exec_cmd("~/.config/quickshell/scripts/screenshot copy area"))
+
+-- Screen recording (wf-recorder)
+hl.bind("ALT + R", hl.dsp.exec_cmd([[wf-recorder -o $(hyprctl -j activeworkspace | jq -r '.monitor') -f "$HOME/recordings/record_$(date +%Y-%m-%d_%H-%M-%S).mp4" &]]))
+-- NOTE: original was `exec, [kill -SIGINT wf-recorder` (malformed). Fixed to pkill.
+hl.bind("ALT + SHIFT + R", hl.dsp.exec_cmd("pkill -SIGINT -x wf-recorder"))
+
+-- Fullscreen
+hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }))
+
+-- Scrolling layout messages
+hl.bind(mainMod .. " + period",  hl.dsp.layout("move +col"))
+hl.bind(mainMod .. " + comma",   hl.dsp.layout("swapcol l"))
+hl.bind(mainMod .. " + SHIFT + F", hl.dsp.layout("colresize -.25"))
+
+-- Move focus with mainMod + arrow keys
+hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
+hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
+hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+
+-- Switch to / move window to workspaces [1-0]
+for i = 1, 10 do
+    local key = i % 10 -- 10 maps to key 0
+    hl.bind(mainMod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
+    hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+end
+
+-- Special workspace (scratchpad). Both binds must reference the SAME special
+-- workspace: toggle "magic" <-> move to "special:magic".
+hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic" }))
+
+-- Scroll through existing workspaces with mainMod + scroll
+hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind(mainMod .. " + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+
+-- Move/resize windows with mainMod + LMB/RMB and dragging
+hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
+hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
+
+-- Volume + brightness (locked = works on lockscreen, repeating = repeat when held)
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"),  { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),  { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl set +5%"), { locked = true, repeating = true })
+hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl set 5%-"), { locked = true, repeating = true })
+
+-- Media keys (playerctl)
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+--------------------------------
+---- WINDOWS AND WORKSPACES ----
+--------------------------------
+
+hl.window_rule({
+    name           = "suppress-maximize-events",
+    match          = { class = ".*" },
+    suppress_event = "maximize",
+})
+
+hl.window_rule({
+    name      = "slack-ws2",
+    match     = { class = "^(Slack)$" },
+    workspace = "2",
+    opacity   = "1 1",
+})
+
+hl.window_rule({
+    name      = "spotify-ws3",
+    match     = { class = "^(spotify)$" },
+    workspace = "3",
+    opacity   = "0.75 0.75",
+})
+
+hl.window_rule({
+    name      = "discord-ws4",
+    match     = { class = "^(discord)$" },
+    workspace = "4",
+    opacity   = "1 1",
+})
+
+hl.window_rule({
+    name    = "chrome-opacity",
+    match   = { class = "^(Google-chrome)$" },
+    opacity = "0.85 0.85",
+})
+
+hl.window_rule({
+    name    = "blueman-opacity",
+    match   = { class = "^(blueman-manager)$" },
+    opacity = "0.9 0.9",
+})
+
+hl.window_rule({
+   name = "vesktop-render-unfocused",
+   match = {class = "vesktop"},
+   render_unfocused = true,
+})

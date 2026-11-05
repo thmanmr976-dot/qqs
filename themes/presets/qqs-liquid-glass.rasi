@@ -1,0 +1,65 @@
+/* Liquid Glass: translucent surfaces, soft highlights and a luminous rim.
+   Native background blur is supplied by the Wayland compositor. */
+* { font: "Noto Sans 11"; text-color: #f5f9ff; }
+window {
+    width: 600px;
+    height: 420px;
+    location: center;
+    background-color: rgba(18, 28, 48, 0.56);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.28);
+    border-radius: 32px;
+}
+mainbox { padding: 24px; spacing: 12px; children: [ title, inputbar, listview, footer ]; }
+inputbar { spacing: 10px; }
+entry {
+    background-color: rgba(255, 255, 255, 0.09);
+    text-color: #f7fbff;
+    placeholder-color: rgba(230, 241, 255, 0.62);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.22);
+    border-radius: 16px;
+    height: 44px;
+    padding: 0px 15px;
+    placeholder: "Search rices or paste a GitHub URL / local path";
+}
+button {
+    background-color: rgba(185, 222, 255, 0.21);
+    text-color: #ffffff;
+    border-radius: 16px;
+    height: 44px;
+    width: 74px;
+}
+button hover { background-color: rgba(211, 236, 255, 0.35); }
+listview { columns: 1; spacing: 6px; cycle: true; }
+element {
+    background-color: rgba(255, 255, 255, 0.045);
+    text-color: #edf5ff;
+    border-color: rgba(255, 255, 255, 0.09);
+    border: 1px;
+    border-radius: 17px;
+    height: 48px;
+    padding: 0px 16px;
+}
+element hover { background-color: rgba(255, 255, 255, 0.12); }
+element selected {
+    background-color: rgba(177, 220, 255, 0.23);
+    text-color: #ffffff;
+    border-color: rgba(235, 250, 255, 0.5);
+    border: 1px;
+}
+title { enabled: true; text: "qqs"; font: "Noto Sans 17"; text-color: #ffffff; }
+footer { text: "{shortcuts}"; font: "Noto Sans 9"; text-color: rgba(223, 237, 255, 0.68); }
+configuration {
+    glass-effect: true;
+    glass-highlight-color: #ffffff;
+    glass-strength: 55;
+    border-secondary-color: "#ccefffff";
+    background-gradient: true;
+    wave-depth: 3;
+    show-logo: false;
+    show-icons: false;
+    mouse-single-click: true;
+    search-mode: "fuzzy";
+    list-sort: "name";
+}

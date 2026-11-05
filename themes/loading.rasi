@@ -1,0 +1,6 @@
+/* qqs loading screen — Rasi theme */
+window { background-color: #000000; }
+message { text: "Switching to {rice}…"; font: "DejaVu Sans Mono 32"; text-color: #ffffff; }
+progressbar { background-color: #ffffff; border-color: #ffffff; border: 3px; segments: 14; height: 24px; spacing: 9px; }
+footer { text: "Please wait while the configuration loads."; font: "DejaVu Sans Mono 18"; }
+configuration { fullscreen: true; pixelated-text: true; minimum-display-ms: 1800; startup-timeout-ms: 25000; }

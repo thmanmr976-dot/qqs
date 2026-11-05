@@ -1,0 +1,9 @@
+/* Compact, flat, terminal-like panel. */
+* { font: "JetBrains Mono 11"; text-color: #e8e8e8; }
+window { width: 480px; height: 320px; background-color: #101010; border: 1px; border-color: #888888; border-radius: 0px; }
+mainbox { padding: 12px; spacing: 6px; children: [ inputbar, listview ]; }
+entry { background-color: #181818; text-color: #ffffff; border: 0px; border-radius: 0px; placeholder: "Search / import rice"; }
+element { background-color: #101010; text-color: #cccccc; border: 0px; border-radius: 0px; height: 34px; padding: 8px; }
+element selected { background-color: #eeeeee; text-color: #111111; border: 0px; }
+element hover { background-color: #333333; }
+configuration { show-add-button: false; show-footer: false; show-logo: false; wave-depth: 0; background-gradient: false; kb-accept-entry: "Return"; kb-row-down: "Down,Control+n"; kb-row-up: "Up,Control+p"; kb-cancel: "Escape"; }

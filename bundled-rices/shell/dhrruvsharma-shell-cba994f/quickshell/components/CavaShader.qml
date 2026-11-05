@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// Derived from zesis-shell's widgets/cava/CavaGpuVisualizer.qml.
+// Copyright (C) 2026 Squirrel Modeller (zesis-shell)
+//   https://github.com/zesis-shell/zesis
+// Modifications for this Quickshell config, 2026.
+//
+// This file is a derivative work of zesis-shell, used with the author's
+// permission under the GNU General Public License, version 3 or (at your
+// option) any later version. See the full license text in shaders/LICENSE.
+// Distributed WITHOUT ANY WARRANTY.
+
+import QtQuick
+import qs.services as Services
+import qs.colors
+import qs.components
+
+// GPU cava visualizer. The CPU only fills a tiny 1xN texture with bar heights;
+// the fragment shader (shaders/cava.frag.qsb) does all the drawing, so a full
+// size visualizer costs one GPU quad instead of a per-frame CPU repaint.
+//
+// Data comes from services/Cava.qml (raw cava, values 0..1) by default.
+Item {
+    id: root
+
+    property var bars: Services.Cava.values
+    property color accentColor: Colors.primary
+    property int orientation: 0   // 0 bottom, 1 top, 2 left, 3 right
+    property int style: 0         // 0 bars, 1 area
+    property real gapPx: 2
+    property real lineWidthPx: 1.5
+    property int flip: 0
+    // Bezier baseline: the bars' base follows a cubic curve across the widget.
+    // y0..y3 are control points at 0, 1/3, 2/3, 1 of the cross axis, as a
+    // fraction of the bar extent (-1..1). bezierFit shrinks bars into the room
+    // left above a raised baseline instead of letting them overflow.
+    property bool bezierEnabled: false
+    property bool bezierFit: true
+    property real bezierY0: 0
+    property real bezierY1: 0
+    property real bezierY2: 0
+    property real bezierY3: 0
+
+    readonly property int barCount: root.bars ? root.bars.length : 0
+
+    // 1xN grayscale data texture: red channel = normalized bar height.
+    // The canvas is itself the shader's texture provider. It sits in a
+    // zero-size clipped host so it stays "visible" (and keeps producing its
+    // texture) without ever drawing on screen. Going through a
+    // ShaderEffectSource instead cost a second frame per cava update.
+    Item {
+        width: 0
+        height: 0
+        clip: true
+
+        Canvas {
+            id: dataCanvas
+            width: Math.max(1, root.barCount)
+            height: 1
+            smooth: false
+
+            property var barsData: root.bars
+            // The row's pixels, reused from frame to frame: one putImageData
+            // per cava frame instead of a fillStyle and fillRect per bar.
+            property var pixels: null
+            onBarsDataChanged: dataCanvas.requestPaint()
+            Component.onCompleted: dataCanvas.requestPaint()
+
+            onPaint: {
+                var ctx = getContext("2d");
+                var bars = root.bars;
+                var n = bars ? bars.length : 0;
+                if (n === 0) {
+                    ctx.clearRect(0, 0, width, height);
+                    return;
+                }
+                if (!pixels || pixels.width !== n)
+                    pixels = ctx.createImageData(n, 1);
+                var d = pixels.data;
+                for (var i = 0; i < n; i++) {
+                    var v = (Math.max(0, Math.min(1, bars[i])) * 255 + 0.5) | 0;
+                    d[i * 4] = v;
+                    d[i * 4 + 1] = v;
+                    d[i * 4 + 2] = v;
+                    d[i * 4 + 3] = 255;
+                }
+                // Qt ignores putImageData unless given the dirty rect too.
+                ctx.putImageData(pixels, 0, 0, 0, 0, n, 1);
+            }
+        }
+    }
+
+    ShaderEffect {
+        id: shaderItem
+        anchors.fill: parent
+        visible: root.barCount > 0
+
+        property variant dataTex: dataCanvas
+        property real itemWidth: width
+        property real itemHeight: height
+        property int barCount: root.barCount
+        property int styleMode: root.style
+        property int orientation: root.orientation
+        property int flip: root.flip
+        property real gapPx: root.gapPx
+        property real lineWidthPx: root.lineWidthPx
+        property int bezEnabled: root.bezierEnabled ? 1 : 0
+        property int bezFit: root.bezierFit ? 1 : 0
+        property real bezY0: root.bezierY0
+        property real bezY1: root.bezierY1
+        property real bezY2: root.bezierY2
+        property real bezY3: root.bezierY3
+        property color accentColor: root.accentColor
+
+        fragmentShader: Qt.resolvedUrl("../shaders/cava.frag.qsb")
+    }
+
+    // Surfaces a compile/load failure instead of silently drawing nothing.
+    Rectangle {
+        anchors.centerIn: parent
+        visible: shaderItem.status === ShaderEffect.Error
+        width: Math.min(parent.width - 16, 280)
+        height: errText.implicitHeight + 16
+        radius: 6
+        color: Qt.rgba(1, 0, 0, 0.12)
+        border.color: Colors.error
+        border.width: 1
+
+        StyledText {
+            id: errText
+            anchors.centerIn: parent
+            width: parent.width - 16
+            text: "cava shader failed to load\n" + shaderItem.log
+            color: Colors.error
+            font.pixelSize: 11
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+        }
+    }
+}

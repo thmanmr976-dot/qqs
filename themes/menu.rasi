@@ -1,0 +1,26 @@
+/* qqs launcher — Rasi theme */
+* {
+    bg: #eaf4ff;
+    fg: #20365c;
+    accent: #349cff;
+    font: "Noto Sans 11";
+}
+window {
+    width: 560px;
+    height: 400px;
+    location: center;
+    background-color: @bg;
+    border: 4px;
+    border-color: @accent;
+    border-radius: 28px;
+}
+mainbox { padding: 26px; spacing: 8px; }
+entry { height: 40px; border-radius: 12px; placeholder: "Search rice or paste a GitHub URL / path"; }
+listview { columns: 1; spacing: 5px; cycle: true; }
+element { height: 40px; border-radius: 12px; text-color: @fg; }
+element selected { background-color: #bddfff; border-color: @accent; }
+configuration {
+    search-mode: "substring";
+    mouse-single-click: true;
+    live-reload: true;
+}

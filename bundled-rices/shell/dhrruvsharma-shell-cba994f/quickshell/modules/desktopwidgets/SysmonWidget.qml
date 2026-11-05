@@ -1,0 +1,133 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import qs.colors
+import qs.services as Services
+
+// Desktop system monitor: CPU (with a short history), memory, temperature
+// and disk from services/System (polled every 2 s), in the look of the
+// desktop theme.
+WidgetFrame {
+    id: root
+
+    readonly property var sys: Services.System
+    property var history: []
+
+    themeId: Services.DesktopTheme.enabled ? Services.DesktopTheme.theme : ""
+    title: WidgetStyle.word("sysmon", themeId)
+    seal: "气"
+
+    Connections {
+        target: Services.System
+
+        function onCpuChanged() {
+            const h = root.history.slice(-39);
+            h.push(Services.System.cpu);
+            root.history = h;
+        }
+    }
+
+    // A fixed list of rows, each reading its own stat: a model holding the
+    // values themselves rebuilt every row (and its bar) on each 2 s poll.
+    Repeater {
+        model: ["cpu", "ram", "temp", "disk"]
+
+        Column {
+            id: row
+            required property string modelData
+            readonly property real stat: root.sys[modelData]
+            width: 260
+            spacing: 5
+
+            Item {
+                width: parent.width
+                height: name.implicitHeight
+
+                Text {
+                    id: name
+                    text: WidgetStyle.label(WidgetStyle.word(row.modelData, root.themeId), root.st)
+                    font.family: root.st.ui ?? root.st.cjk ?? (root.st.frame === "chamfer" ? root.st.mono : root.st.font)
+                    font.pixelSize: ({ neon: 15, scrap: 14, lancet: 14, clipping: 13, brass: 15, patta: 14, banner: 15 })[root.st.frame] ?? 12
+                    font.weight: root.st.frame === "clipping" ? Font.Bold : Font.Normal
+                    font.letterSpacing: root.st.labelCase === "upper" ? 2 : 0.3
+                    font.capitalization: WidgetStyle.caps(root.st)
+                    color: Colors.withAlpha(root.ink, 0.78)
+                }
+
+                Text {
+                    anchors.right: parent.right
+                    text: Math.round(row.stat) + (row.modelData === "temp" ? "°C" : "%")
+                    font.family: root.st.frame === "glass" ? root.st.display : root.st.mono
+                    font.pixelSize: 12
+                    font.weight: Font.Medium
+                    color: root.ink
+                }
+            }
+
+            WidgetBar {
+                width: parent.width
+                themeId: root.themeId
+                value: row.stat / 100
+            }
+        }
+    }
+
+    // CPU history: a line chart, block characters on the console.
+    Canvas {
+        id: spark
+        width: 260
+        height: 34
+        visible: root.st.frame !== "console" && root.st.frame !== "bare"
+
+        onPaint: {
+            const ctx = getContext("2d");
+            ctx.reset();
+            const h = root.history;
+            if (h.length < 2)
+                return;
+            const step = width / 39;
+            const x0 = width - (h.length - 1) * step;
+            ctx.beginPath();
+            for (let i = 0; i < h.length; i++) {
+                const x = x0 + i * step;
+                const y = height - 2 - (height - 4) * Math.min(1, h[i] / 100);
+                if (i === 0)
+                    ctx.moveTo(x, y);
+                else
+                    ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = root.accent;
+            ctx.lineWidth = root.st.frame === "chamfer" || root.st.frame === "neon" ? 1.5 : 2;
+            ctx.stroke();
+            ctx.lineTo(width, height);
+            ctx.lineTo(x0, height);
+            ctx.closePath();
+            ctx.fillStyle = Colors.withAlpha(root.accent, 0.15);
+            ctx.fill();
+        }
+
+        Connections {
+            target: root
+
+            function onHistoryChanged() {
+                spark.requestPaint();
+            }
+        }
+    }
+
+    Text {
+        visible: root.st.frame === "console"
+        text: "cpu " + root.history.map(v => "▁▂▃▄▅▆▇█".charAt(Math.min(7, Math.floor(v / 12.5)))).join("")
+        font.family: root.st.mono
+        font.pixelSize: 13
+        color: root.accent
+    }
+
+    Text {
+        text: WidgetStyle.label(WidgetStyle.word("uptime", root.themeId), root.st) + "  " + root.sys.uptime
+        font.family: root.st.mono
+        font.pixelSize: 11
+        font.letterSpacing: root.st.labelCase === "upper" ? 1.5 : 0
+        font.capitalization: WidgetStyle.caps(root.st)
+        color: Colors.withAlpha(root.ink, 0.6)
+    }
+}

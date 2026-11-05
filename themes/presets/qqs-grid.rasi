@@ -1,0 +1,5 @@
+@theme "qqs-dark"
+window { width: 720px; height: 460px; }
+listview { columns: 2; spacing: 8px; }
+element { height: 76px; padding: 12px; border-radius: 14px; }
+configuration { show-icons: true; icon-size: 28; row-alignment: "center"; row-show-index: true; }
